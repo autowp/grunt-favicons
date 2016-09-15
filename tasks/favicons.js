@@ -36,8 +36,10 @@ module.exports = function(grunt) {
             firefoxRound: false,
             firefoxManifest: "",
             androidHomescreen: false,
+            androidIcons : false,
             indent: "\t",
             timestamp: false,
+            truncateHTML: false,
             getLowResolutionImagePath: function (srcFilePath, size) {
                 var extname = path.extname(srcFilePath);
                 return path.join(path.dirname(srcFilePath), path.basename(srcFilePath, extname) + '.' + size + extname);
@@ -109,23 +111,27 @@ module.exports = function(grunt) {
         var needHTML = options.html !== undefined && options.html !== "";
 
         if (needHTML) {
+            var html = '';
             var cheerio = require("cheerio");
             var contents = (grunt.file.exists(options.html)) ? grunt.file.read(options.html) : "";
-            var $ = cheerio.load(contents);
-            // Removing exists favicon from HTML
-            $('link[rel="shortcut icon"]').remove();
-            $('link[rel="icon"]').remove();
-            $('link[rel="apple-touch-icon"]').remove();
-            $('link[rel="apple-touch-icon-precomposed"]').remove();
-            $('meta').each(function(i, elem) {
-                var name = $(this).attr('name');
-                if(name && (name === 'msapplication-TileImage' ||
-                            name === 'msapplication-TileColor' ||
-                            name.indexOf('msapplication-square') >= 0)) {
-                    $(this).remove();
-                }
-            });
-            var html = $.html().replace(/(?:(?:^|\n)\s+|\s+(?:$|\n))/g,'').replace(/\s+/g,' ');
+            var $;
+            if (contents !== "" && !options.truncateHTML) {
+                $ = cheerio.load(contents);
+                // Removing exists favicon from HTML
+                $('link[rel="shortcut icon"]').remove();
+                $('link[rel="icon"]').remove();
+                $('link[rel="apple-touch-icon"]').remove();
+                $('link[rel="apple-touch-icon-precomposed"]').remove();
+                $('meta').each(function(i, elem) {
+                    var name = $(this).attr('name');
+                    if(name && (name === 'msapplication-TileImage' ||
+                                name === 'msapplication-TileColor' ||
+                                name.indexOf('msapplication-square') >= 0)) {
+                        $(this).remove();
+                    }
+                });
+                 html = $.html().replace(/(?:(?:^|\n)\s+|\s+(?:$|\n))/g,'').replace(/\s+/g,' ');
+            }
             if(html === '') {
                 $ = cheerio.load('');
             }
@@ -257,6 +263,29 @@ module.exports = function(grunt) {
                 if (options.androidHomescreen) {
                     grunt.log.write('homescreen-192x192.png... ');
                     convert(combine(source, f.dest, "192x192", "homescreen-192x192.png", additionalOpts));
+                    grunt.log.ok();
+                }
+                
+                // Android Icons app
+                if (options.androidIcons) {
+                    // 36x36: LDPI
+                    grunt.log.write('android-icons-36x36.png... ');
+                    convert(combine(source, f.dest, "36x36", "android-icons-36x36.png", additionalOpts));
+                    grunt.log.ok();
+
+                    // 48x48: MDPI
+                    grunt.log.write('android-icons-48x48.png... ');
+                    convert(combine(source, f.dest, "48x48", "android-icons-48x48.png", additionalOpts));
+                    grunt.log.ok();
+
+                    // 72x72: HDPI
+                    grunt.log.write('android-icons-72x72.png... ');
+                    convert(combine(source, f.dest, "72x72", "android-icons-72x72.png", additionalOpts));
+                    grunt.log.ok();
+
+                    // 96x96: XHDPI
+                    grunt.log.write('android-icons-96x96.png... ');
+                    convert(combine(source, f.dest, "96x96", "android-icons-96x96.png", additionalOpts));
                     grunt.log.ok();
                 }
 
